@@ -53,7 +53,7 @@ def save_as_pdf(output_dict):
     pdf.output("object_detection_report.pdf")
 
 def main():
-    st.title("Object Detection and Measurement Tool")
+    st.title("Measurement-Tool for Object Detection")
 
     uploaded_image = st.file_uploader("Upload an image", type=["jpg", "jpeg", "png"])
 
