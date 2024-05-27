@@ -3,7 +3,6 @@ import cv2
 import numpy as np
 from fpdf import FPDF
 import torch
-import os
 from ultralytics import YOLO
 
 # Load YOLOv8 model
@@ -53,7 +52,7 @@ def save_as_pdf(output_dict):
     pdf.output("object_detection_report.pdf")
 
 def main():
-    st.title("Measurement-Tool for Object Detection")
+    st.title("Object Detection and Measurement Tool")
 
     uploaded_image = st.file_uploader("Upload an image", type=["jpg", "jpeg", "png"])
 
@@ -78,6 +77,14 @@ def main():
                 real_width = w * pixel_to_cm_ratio
                 real_height = h * pixel_to_cm_ratio
 
+                # Add measurement details to the image
+                output_image = image.copy()
+                cv2.rectangle(output_image, (int(x1), int(y1)), (int(x2), int(y2)), (255, 0, 0), 2)
+                text = f"{class_name}: {confidence:.2f}\nW: {w}px H: {h}px\nRW: {real_width:.2f}cm RH: {real_height:.2f}cm"
+                y_offset = y1 - 10 if y1 - 10 > 10 else y1 + 10
+                for i, line in enumerate(text.split('\n')):
+                    cv2.putText(output_image, line, (int(x1), int(y_offset + i * 20)), cv2.FONT_HERSHEY_SIMPLEX, 0.5, (255, 0, 0), 2)
+
                 object_measurements = {
                     "class_name": class_name,
                     "confidence": confidence,
@@ -86,7 +93,7 @@ def main():
                     "real_width": real_width,
                     "real_height": real_height,
                     "bbox": (int(x1), int(y1), int(w), int(h)),
-                    "image": cv2.rectangle(image.copy(), (int(x1), int(y1)), (int(x2), int(y2)), (255, 0, 0), 2)
+                    "image": output_image
                 }
 
                 # Display measurements on Streamlit webpage
