@@ -1,0 +1,70 @@
+Certainly! Here's a detailed documentation for the full code in your project:
+
+---
+
+# Measurement App - Code Documentation
+
+## Overview
+
+The Measurement App is a Python-based tool for object detection, grid overlay, area selection, and measurement calculation on images. The code is organized into a single script, `app.py`, which utilizes Streamlit for creating the web interface, OpenCV for image processing tasks, and FPDF for generating PDF reports.
+
+## Functions and Classes
+
+1. `load_yolo_model()`: Loads the YOLOv8 model for object detection.
+
+2. `detect_objects(image, model)`: Performs object detection on the uploaded image using the YOLOv8 model.
+
+3. `save_as_pdf(output_dict)`: Generates a PDF report with measurement details.
+
+4. `draw_grid(image, step_size)`: Draws grids on the image with a specified step size.
+
+5. `main()`: Main function to create the Streamlit web interface, handle user interactions, and display measurement results.
+
+## Workflow
+
+1. **Object Detection**: The script first loads the YOLOv8 model and performs object detection on the uploaded image.
+
+2. **Grid Drawing**: Users can choose to overlay grids on the image with a customizable step size.
+
+3. **Area Selection**: Users can select specific areas on the image using the drawable canvas provided by Streamlit.
+
+4. **Measurement Calculation**: Measurements for both detected objects and selected areas are calculated based on pixel dimensions and a known reference scale.
+
+5. **PDF Report Generation**: Measurement details are compiled into a PDF report, which includes object detection results and selected area measurements.
+
+## Usage
+
+1. **Upload Image**: Users upload an image via the Streamlit interface.
+
+2. **Object Detection**: Detected objects are highlighted with bounding boxes, and measurement details are displayed.
+
+3. **Grid Drawing**: Users can overlay grids on the image to aid in measurement.
+
+4. **Area Selection**: Users select specific areas on the image for detailed measurement using the drawable canvas.
+
+5. **PDF Report**: The tool generates a PDF report containing measurement details for detected objects and selected areas.
+
+## Dependencies
+
+- Streamlit
+- OpenCV
+- NumPy
+- FPDF
+- Torch
+- Ultralytics
+
+## Usage Example
+
+To run the app, execute the following command in your terminal:
+
+```sh
+streamlit run app.py
+```
+
+## License
+
+This code is licensed under the MIT License.
+
+---
+
+You can include this documentation in a separate text file named `code_documentation.txt` or any other preferred name. Adjust the content as needed to match your project structure and style.

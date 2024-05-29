@@ -4,6 +4,8 @@ import numpy as np
 from fpdf import FPDF
 import torch
 from ultralytics import YOLO
+from streamlit_drawable_canvas import st_canvas
+from PIL import Image
 
 # Load YOLOv8 model
 def load_yolo_model():
@@ -51,6 +53,14 @@ def save_as_pdf(output_dict):
     
     pdf.output("object_detection_report.pdf")
 
+def draw_grid(image, grid_size):
+    h, w = image.shape[:2]
+    for i in range(0, w, grid_size):
+        cv2.line(image, (i, 0), (i, h), (0, 255, 0), 1)
+    for i in range(0, h, grid_size):
+        cv2.line(image, (0, i), (w, i), (0, 255, 0), 1)
+    return image
+
 def main():
     st.title("Object Detection and Measurement Tool")
 
@@ -58,7 +68,17 @@ def main():
 
     if uploaded_image is not None:
         image = cv2.imdecode(np.frombuffer(uploaded_image.read(), np.uint8), 1)
-        
+
+        # Get grid size from user
+        grid_size = st.slider("Select Grid Size", 10, 100, 20)
+
+        # Draw grid on the image
+        image_with_grid = draw_grid(image.copy(), grid_size)
+        st.image(image_with_grid, channels="BGR", caption="Image with Grid")
+
+        # Convert to PIL Image for st_canvas background
+        pil_image = Image.fromarray(cv2.cvtColor(image_with_grid, cv2.COLOR_BGR2RGB))
+
         model = load_yolo_model()
         boxes, confidences, class_ids, class_names = detect_objects(image, model)
 
@@ -108,8 +128,81 @@ def main():
                 save_as_pdf(object_measurements)
                 st.download_button("Download PDF Report", data=open("object_detection_report.pdf", "rb").read(), file_name="object_detection_report.pdf")
                 break
+
+        # Selecting grids with drawable canvas
+        st.subheader("Select Grid Area for Measurement")
+        canvas_result = st_canvas(
+            fill_color="rgba(255, 165, 0, 0.3)",  # Transparent fill
+            stroke_width=1,
+            stroke_color="#FF0000",
+            background_image=pil_image,
+            update_streamlit=True,
+            height=image.shape[0],
+            width=image.shape[1],
+            drawing_mode="rect",
+            key="canvas",
+        )
+
+        if canvas_result.json_data is not None:
+            objects = canvas_result.json_data["objects"]
+            if len(objects) > 0:
+                obj = objects[0]
+                if obj["width"] > 0 and obj["height"] > 0:
+                    left = int(obj["left"])
+                    top = int(obj["top"])
+                    width = int(obj["width"])
+                    height = int(obj["height"])
+
+                    x1, y1, x2, y2 = left, top, left + width, top + height
+
+                    # Ensure the selected area is within image bounds
+                    if x1 < 0: x1 = 0
+                    if y1 < 0: y1 = 0
+                    if x2 > image.shape[1]: x2 = image.shape[1]
+                    if y2 > image.shape[0]: y2 = image.shape[0]
+
+                    if x1 < x2 and y1 < y2:
+                        selected_area = image[y1:y2, x1:x2]
+                        st.image(selected_area, channels="BGR", caption="Selected Grid Area")
+
+                        # Calculate the measurements of the selected area
+                        w_selected = x2 - x1
+                        h_selected = y2 - y1
+                        real_width_selected = w_selected * pixel_to_cm_ratio
+                        real_height_selected = h_selected * pixel_to_cm_ratio
+
+                        # Create output image for selected area
+                        output_image_selected = image.copy()
+                        cv2.rectangle(output_image_selected, (x1, y1), (x2, y2), (255, 0, 0), 2)
+                        text_selected = f"Selected Area\nW: {w_selected}px H: {h_selected}px\nRW: {real_width_selected:.2f}cm RH: {real_height_selected:.2f}cm"
+                        y_offset_selected = y1 - 10 if y1 - 10 > 10 else y1 + 10
+                        for i, line in enumerate(text_selected.split('\n')):
+                            cv2.putText(output_image_selected, line, (x1, y_offset_selected + i * 20), cv2.FONT_HERSHEY_SIMPLEX, 0.5, (255, 0, 0), 2)
+
+                        selected_area_measurements = {
+                            "class_name": "Selected Area",
+                            "confidence": 1.0,
+                            "width": w_selected,
+                            "height": h_selected,
+                            "real_width": real_width_selected,
+                            "real_height": real_height_selected,
+                            "bbox": (x1, y1, w_selected, h_selected),
+                            "image": output_image_selected
+                        }
+
+                        # Display measurements for the selected area
+                        st.image(selected_area_measurements['image'], channels="BGR")
+                        st.write(f"Width: {int(w_selected)} pixels")
+                        st.write(f"Height: {int(h_selected)} pixels")
+                        st.write(f"Real Width: {real_width_selected:.2f} cm")
+                        st.write(f"Real Height: {real_height_selected:.2f} cm")
+
+                        save_as_pdf(selected_area_measurements)
+                        st.download_button("Download PDF Report for Selected Area", data=open("object_detection_report.pdf", "rb").read(), file_name="object_detection_report_selected_area.pdf")
+            else:
+                st.error("No area selected. Please draw a rectangle on the image.")
         else:
-            st.error("No objects detected. Please try again with a different image.")
+            st.error("No area selected. Please draw a rectangle on the image.")
 
 if __name__ == "__main__":
     main()
