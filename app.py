@@ -2,7 +2,6 @@ import streamlit as st
 import cv2
 import numpy as np
 from fpdf import FPDF
-import torch
 from ultralytics import YOLO
 from streamlit_drawable_canvas import st_canvas
 from PIL import Image
