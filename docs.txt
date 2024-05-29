@@ -67,4 +67,5 @@ This code is licensed under the MIT License.
 
 ---
 
-You can include this documentation in a separate text file named `code_documentation.txt` or any other preferred name. Adjust the content as needed to match your project structure and style.
+You can include this documentation in a separate text file named `code_documentation.txt` or any other preferred name.
+Thanks Adjust the content as needed to match your project structure and style.
