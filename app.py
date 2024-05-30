@@ -5,6 +5,10 @@ from fpdf import FPDF
 from ultralytics import YOLO
 from streamlit_drawable_canvas import st_canvas
 from PIL import Image
+import logging
+
+# Initialize logging
+logging.basicConfig(level=logging.DEBUG)
 
 # Load YOLOv8 model
 def load_yolo_model():
