@@ -8,7 +8,7 @@ from PIL import Image
 
 # Load YOLOv8 model
 def load_yolo_model():
-    model = YOLO('yolov8n.pt')  # Using the small version of YOLOv8
+    model = YOLO('yolov8m.pt')  # Using a medium version of YOLOv8 for better accuracy
     return model
 
 # Perform object detection
@@ -60,6 +60,12 @@ def draw_grid(image, grid_size):
         cv2.line(image, (0, i), (w, i), (0, 255, 0), 1)
     return image
 
+def calibrate_pixel_to_cm(image, reference_width_cm):
+    # Placeholder function for calibration. Adjust this to use actual reference object detection.
+    ref_image_width = 50  # Example: reference object width in pixels
+    pixel_to_cm_ratio = reference_width_cm / ref_image_width
+    return pixel_to_cm_ratio
+
 def main():
     st.title("Object Detection and Measurement Tool")
 
@@ -82,9 +88,10 @@ def main():
         boxes, confidences, class_ids, class_names = detect_objects(image, model)
 
         if len(boxes) > 0:
-            # Assuming a reference object is included in the image for real-world measurement
-            # For simplicity, let's assume 1 pixel = 0.026 cm (for a specific known reference)
-            pixel_to_cm_ratio = 0.026  # This should be calculated based on a known reference in the image
+            # Use a reference object for calibration
+            st.subheader("Calibration")
+            reference_width_cm = st.number_input("Enter the width of the reference object (cm)", value=10.0)
+            pixel_to_cm_ratio = calibrate_pixel_to_cm(image, reference_width_cm)
 
             for i in range(len(boxes)):
                 x1, y1, x2, y2 = boxes[i][:4]
@@ -170,14 +177,14 @@ def main():
                         real_width_selected = w_selected * pixel_to_cm_ratio
                         real_height_selected = h_selected * pixel_to_cm_ratio
 
-                        # Create output image for selected area
+                        # Draw the bounding box and text on the image
                         output_image_selected = image.copy()
-                        cv2.rectangle(output_image_selected, (x1, y1), (x2, y2), (255, 0, 0), 2)
-                        text_selected = f"Selected Area\nW: {w_selected}px H: {h_selected}px\nRW: {real_width_selected:.2f}cm RH: {real_height_selected:.2f}cm"
+                        cv2.rectangle(output_image_selected, (x1, y1), (x2, y2), (0, 255, 0), 2)
+                        text_selected = f"Selected Area:\nW: {w_selected}px H: {h_selected}px\nRW: {real_width_selected:.2f}cm RH: {real_height_selected:.2f}cm"
                         y_offset_selected = y1 - 10 if y1 - 10 > 10 else y1 + 10
                         for i, line in enumerate(text_selected.split('\n')):
                             cv2.putText(output_image_selected, line, (x1, y_offset_selected + i * 20), cv2.FONT_HERSHEY_SIMPLEX, 0.5, (255, 0, 0), 2)
-                        
+
                         st.image(output_image_selected, channels="BGR", caption="Image with Selected Area")
                         st.write(f"Selected Area Measurements:")
                         st.write(f"Width: {w_selected} pixels")
