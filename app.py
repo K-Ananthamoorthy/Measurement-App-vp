@@ -5,10 +5,6 @@ from fpdf import FPDF
 from ultralytics import YOLO
 from streamlit_drawable_canvas import st_canvas
 from PIL import Image
-import logging
-
-# Initialize logging
-logging.basicConfig(level=logging.DEBUG)
 
 # Load YOLOv8 model
 def load_yolo_model():
@@ -181,31 +177,13 @@ def main():
                         y_offset_selected = y1 - 10 if y1 - 10 > 10 else y1 + 10
                         for i, line in enumerate(text_selected.split('\n')):
                             cv2.putText(output_image_selected, line, (x1, y_offset_selected + i * 20), cv2.FONT_HERSHEY_SIMPLEX, 0.5, (255, 0, 0), 2)
-
-                        selected_area_measurements = {
-                            "class_name": "Selected Area",
-                            "confidence": 1.0,
-                            "width": w_selected,
-                            "height": h_selected,
-                            "real_width": real_width_selected,
-                            "real_height": real_height_selected,
-                            "bbox": (x1, y1, w_selected, h_selected),
-                            "image": output_image_selected
-                        }
-
-                        # Display measurements for the selected area
-                        st.image(selected_area_measurements['image'], channels="BGR")
-                        st.write(f"Width: {int(w_selected)} pixels")
-                        st.write(f"Height: {int(h_selected)} pixels")
+                        
+                        st.image(output_image_selected, channels="BGR", caption="Image with Selected Area")
+                        st.write(f"Selected Area Measurements:")
+                        st.write(f"Width: {w_selected} pixels")
+                        st.write(f"Height: {h_selected} pixels")
                         st.write(f"Real Width: {real_width_selected:.2f} cm")
                         st.write(f"Real Height: {real_height_selected:.2f} cm")
-
-                        save_as_pdf(selected_area_measurements)
-                        st.download_button("Download PDF Report for Selected Area", data=open("object_detection_report.pdf", "rb").read(), file_name="object_detection_report_selected_area.pdf")
-            else:
-                st.error("No area selected. Please draw a rectangle on the image.")
-        else:
-            st.error("No area selected. Please draw a rectangle on the image.")
 
 if __name__ == "__main__":
     main()
