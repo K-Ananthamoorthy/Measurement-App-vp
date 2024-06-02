@@ -23,8 +23,8 @@ The Measurement App is designed to help users analyze and measure the spatial di
 
 1. **Clone the repository and navigate to the project directory**:
     ```sh
-    git clone <repository_url>
-    cd <repository_directory>
+    git clone <https://github.com/K-Ananthamoorthy/Measurement-App-vp.git>
+    cd <Measurement-App-vp>
     ```
 
 2. **Create a virtual environment and activate it**:
